@@ -147,9 +147,13 @@ namespace TVIMS_Calculator
                 }
             }
 
-            if (modeIndex == 0)
+            if (modeIndex == 0 || modeIndex == FrequencyRange.Frequencies.Length - 1)
             {
-                throw new ArgumentException("Mode is zero. Formula not sophisticated");
+                Console.Error.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                Console.Error.WriteLine("-->Что-то не то с модой.<--");
+                Console.Error.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                Mode = Double.Epsilon;
+                return;
             }
 
             Mode = FrequencyRange[modeIndex] - FrequencyRange[modeIndex - 1];
