@@ -95,8 +95,8 @@ namespace TVIMS_Calculator
 
         private void InitFrequencyRange()
         {
-            this.IntervalAmount = 1 + (int) (3.322 * Math.Log10(Volume));
-            this.IntervalStep = (int) ((VariationRange[^1] - VariationRange[0]) / IntervalAmount);
+            IntervalAmount = 1 + (int) (3.322 * Math.Log10(Volume));
+            IntervalStep = Convert.ToInt32((VariationRange[^1] - VariationRange[0]) / IntervalAmount);
 
             double[][] frequencyRange = new double[IntervalAmount][];
             int[] frequencies = new int[IntervalAmount];
