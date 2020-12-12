@@ -1,14 +1,15 @@
 ﻿using System;
+using TVIMS_Calculator.Interfaces;
 
-namespace TVIMS_Calculator
+namespace TVIMS_Calculator.Implementations
 {
-    class NonDiscreteRange : IRange<double[]>
+    class SampleRange<T> : ISampleRange<T>
     {
-        public Pair<double[], int>[] Frequencies { get; private set; }
-        public int FrequenciesSum { get; private set; }
+        public Pair<T, int>[] Frequencies { get; }
+        public int FrequenciesSum { get; }
         public int this[int index] => Frequencies[index].Second;
 
-        public NonDiscreteRange(double[][] ranges, int[] frequencies)
+        public SampleRange(T[] ranges, int[] frequencies)
         {
             if (ranges is null)
             {
@@ -25,11 +26,11 @@ namespace TVIMS_Calculator
                 throw new ArgumentException("Ranges and frequencies length are not same", nameof(ranges));
             }
 
-            this.Frequencies = new Pair<double[], int>[ranges.Length];
+            Frequencies = new Pair<T, int>[ranges.Length];
             for (int i = 0; i < ranges.Length; i++)
             {
                 FrequenciesSum += frequencies[i];
-                var p = new Pair<double[], int>(ranges[i], frequencies[i]);
+                var p = new Pair<T, int>(ranges[i], frequencies[i]);
                 Frequencies[i] = p;
             }
         }

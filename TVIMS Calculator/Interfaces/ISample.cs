@@ -1,23 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text;
-
-namespace TVIMS_Calculator
+﻿namespace TVIMS_Calculator
 {
-    interface ISample<T>
+    interface ISample
     {
         double[] VariationRange { get; }
+        double VariationScope { get; }
+        double VariationCoefficient { get; }
         int Volume { get; }
-        IRange<T> FrequencyRange { get; }
         double Average { get; }
         double Mode { get; }
         double Median { get; }
         double Dispersion { get; }
-        double ExpectedValue { get; }
         double Asymmetry { get; }
         double Excess { get; }
+        double GetCenterMoment(int m);
         string GetDistributionFunction();
         string GetRange();
+        void OutputInfo();
     }
 }

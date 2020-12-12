@@ -2,35 +2,31 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TVIMS_Calculator.Implementations;
+using TVIMS_Calculator.Interfaces;
 
 namespace TVIMS_Calculator
 {
-    class NonDiscreteSample : ISample<double[]>
+    class NonDiscreteSample : ISample
     {
         public double[] VariationRange { get; private set; }
+        public double VariationScope { get; private set; }
+        public double VariationCoefficient { get; private set; }
         public int Volume { get; private set; }
-        public IRange<double[]> FrequencyRange { get; private set; }
+        public ISampleRange<double[]> FrequencyRange { get; private set; }
         public int IntervalAmount { get; private set; }
         public double IntervalStep { get; private set; }
-
         public double Average { get; private set; }
-
         public double Mode { get; private set; }
-
         public double Median { get; private set; }
-
         public double Dispersion { get; private set; }
-
-        public double ExpectedValue { get; private set; }
-
         public double Asymmetry { get; private set; }
-
         public double Excess { get; private set; }
         private double[] GroupAverages { get; set; }
         public double[] GroupDispersions { get; private set; }
         public double AverageGroupDispersion { get; private set; }
         public double IntergroupDispersion { get; private set; }
-        public double EmpiricDeterminationCoefficient { get; private set; }
+        public double DeterminationCoefficient { get; private set; }
 
         public string GetDistributionFunction()
         {
@@ -58,7 +54,7 @@ namespace TVIMS_Calculator
         public string GetRange()
         {
             StringBuilder rangeBuilder = new StringBuilder();
-            rangeBuilder.AppendFormat("{0,2} | {1,25} | {2,3} | {3,10} | {4,10}", "№", "Границы", "ni", "ni/h", "wi/h")
+            rangeBuilder.AppendFormat("{0,3} | {1,25} | {2,3} | {3,10} | {4,10}", "№", "Границы", "ni", "ni/h", "wi/h")
                 .Append(Environment.NewLine);
             for (int i = 0; i < FrequencyRange.Frequencies.Length; i++)
             {
@@ -68,11 +64,50 @@ namespace TVIMS_Calculator
                 double nih = freq / IntervalStep;
                 double wih = nih / Volume;
                 rangeBuilder
-                    .AppendFormat("{0,2:D} | {1,25} | {2,3:D} | {3,10:E3} | {4,10:E3}", i + 1, range, freq, nih, wih)
+                    .AppendFormat("{0,3:D} | {1,25} | {2,3:D} | {3,10:E3} | {4,10:E3}", i + 1, range, freq, nih, wih)
                     .Append(Environment.NewLine);
             }
 
             return rangeBuilder.ToString();
+        }
+
+        public void OutputInfo()
+        {
+            Console.WriteLine("Вариационный ряд:");
+            Console.WriteLine(string.Join(" ", VariationRange));
+            Console.WriteLine();
+
+            Console.WriteLine("Интервальный ряд:");
+            Console.WriteLine(GetRange());
+
+            Console.WriteLine("Эмпирическая функция");
+            Console.WriteLine(GetDistributionFunction());
+            Console.WriteLine();
+
+            Console.WriteLine($"Объем выборки: {Volume}");
+            Console.WriteLine($"Среднее: {Average}");
+            Console.WriteLine($"Мода: {Mode}");
+            Console.WriteLine($"Медиана: {Median}");
+            Console.WriteLine($"Дисперсия: {Dispersion}");
+            Console.WriteLine($"Среднеквадратичное: {Math.Pow(Dispersion, 0.5)}");
+            Console.WriteLine($"Межгрупповая дисперсия: {IntergroupDispersion}");
+            Console.WriteLine($"Коэф (сумма дисперсий): {DeterminationCoefficient}");
+            Console.WriteLine($"Размах вариации: {VariationScope}");
+            Console.WriteLine($"Коэффициент вариации: {VariationCoefficient}%");
+            Console.WriteLine($"Асимметрия: {Asymmetry}");
+            Console.WriteLine($"Эксцесс: {Excess}");
+        }
+
+        public double GetCenterMoment(int m)
+        {
+            double moment = 0;
+            foreach (var el in VariationRange)
+            {
+                moment += Math.Pow(el - Average, m);
+            }
+
+            moment /= Volume;
+            return moment;
         }
 
         public NonDiscreteSample(double[] samples)
@@ -83,6 +118,9 @@ namespace TVIMS_Calculator
             InitMode();
             InitMedian();
             InitDispersions();
+            InitAsymmetry();
+            InitExcess();
+            InitVariationCoefficient();
         }
 
         private void InitVariationRange(double[] samples)
@@ -96,7 +134,8 @@ namespace TVIMS_Calculator
         private void InitFrequencyRange()
         {
             IntervalAmount = 1 + (int) (3.322 * Math.Log10(Volume));
-            IntervalStep = Convert.ToInt32((VariationRange[^1] - VariationRange[0]) / IntervalAmount);
+            VariationScope = VariationRange[^1] - VariationRange[0];
+            IntervalStep = VariationScope / IntervalAmount;
 
             double[][] frequencyRange = new double[IntervalAmount][];
             int[] frequencies = new int[IntervalAmount];
@@ -112,7 +151,7 @@ namespace TVIMS_Calculator
                 frequencies[i] = GetFrequency(frequencyRange[i], i == IntervalAmount - 1);
             }
 
-            FrequencyRange = new NonDiscreteRange(frequencyRange, frequencies);
+            FrequencyRange = new SampleRange<double[]>(frequencyRange, frequencies);
         }
 
         private int GetFrequency(double[] range, bool isLast)
@@ -133,7 +172,6 @@ namespace TVIMS_Calculator
         private void InitAverage()
         {
             Average = VariationRange.Sum() / Volume;
-            ExpectedValue = AverageGroupDispersion;
         }
 
         private void InitMode()
@@ -189,7 +227,7 @@ namespace TVIMS_Calculator
             InitAverageGroupDispersion();
             InitIntergroupDispersion();
             InitDispersion();
-            EmpiricDeterminationCoefficient = IntergroupDispersion / Dispersion;
+            DeterminationCoefficient = IntergroupDispersion / Dispersion;
         }
 
         private void InitGroupAverages()
@@ -258,12 +296,23 @@ namespace TVIMS_Calculator
 
         private void InitDispersion()
         {
-            foreach (var el in VariationRange)
-            {
-                Dispersion += Math.Pow(el - Average, 2);
-            }
+            Dispersion = GetCenterMoment(2);
+        }
 
-            Dispersion /= Volume;
+        private void InitAsymmetry()
+        {
+            Asymmetry = GetCenterMoment(3) / Math.Pow(Dispersion, 3.0 / 2.0);
+        }
+
+        private void InitExcess()
+        {
+            Excess = GetCenterMoment(4) / Math.Pow(Dispersion, 2);
+            Excess -= 3;
+        }
+
+        private void InitVariationCoefficient()
+        {
+            VariationCoefficient = Math.Pow(Dispersion, 0.5) / Average * 100;
         }
     }
 }
