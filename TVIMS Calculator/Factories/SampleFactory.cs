@@ -1,5 +1,4 @@
-﻿using System;
-using TVIMS_Calculator.Implementations;
+﻿using TVIMS_Calculator.Implementations;
 
 namespace TVIMS_Calculator
 {
