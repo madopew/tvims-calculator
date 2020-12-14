@@ -94,7 +94,7 @@ namespace TVIMS_Calculator.Implementations
                     ? 0
                     : nonDiscreteSample.FrequencyRange[modeIndexes[i] + 1];
                 modes[i] = mode - lower;
-                modes[i] /= mode + mode - upper;
+                modes[i] /= modes[i] + mode - upper;
                 modes[i] *= nonDiscreteSample.IntervalStep;
                 modes[i] += nonDiscreteSample.FrequencyRange.Frequencies[modeIndexes[i]].First[0];
             }
