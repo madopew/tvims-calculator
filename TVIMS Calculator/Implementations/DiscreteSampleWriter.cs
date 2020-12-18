@@ -21,7 +21,7 @@ namespace TVIMS_Calculator.Implementations
             double sum = 0;
 
             distFunc.Append(include)
-                .AppendFormat("{0,5:F2}, x <= {1,5:F2}", sum, _sample.FrequencyRange.Frequencies[0].First).Append(Environment.NewLine);
+                .AppendFormat("{0,5:F2},  x <= {1,5:F2}", sum, _sample.FrequencyRange.Frequencies[0].First).Append(Environment.NewLine);
             for (int i = 0; i < _sample.FrequencyRange.Frequencies.Length - 1; i++)
             {
                 double lower = _sample.FrequencyRange.Frequencies[i].First;
@@ -31,7 +31,7 @@ namespace TVIMS_Calculator.Implementations
                 distFunc.AppendFormat("{0,5:F2}, {1,5:F2} < x <= {2,5:F2}", sum, lower, upper).Append(Environment.NewLine);
             }
 
-            distFunc.Append(include).AppendFormat("{0,5:F2}, {1,5:F2} < x", 1, _sample.FrequencyRange.Frequencies[^1].First);
+            distFunc.Append(include).AppendFormat("{0,5:F2},  x > {1,5:F2}", 1, _sample.FrequencyRange.Frequencies[^1].First);
 
             return distFunc.ToString();
         }
